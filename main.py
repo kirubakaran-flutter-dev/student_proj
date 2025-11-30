@@ -1,77 +1,77 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
+# import os
+# from fastapi import FastAPI
+# from fastapi.responses import HTMLResponse
+# from fastapi.staticfiles import StaticFiles
 
-from database import Base, engine, SessionLocal
+# from database import Base, engine
+# import models
+
+# # Student router import
+# from routers.student_router import router as student_router
+
+# # Create DB Tables
+# Base.metadata.create_all(bind=engine)
+
+# app = FastAPI()
+
+# # ---------- FRONTEND PATH SETUP ----------
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# frontend_path = os.path.join(BASE_DIR, "frontend")
+
+# # Serve frontend folder
+# app.mount("/frontend", StaticFiles(directory=frontend_path), name="frontend")
+
+# # Show login page as default home page
+# @app.get("/", response_class=HTMLResponse)
+# def show_login():
+#     login_file = os.path.join(frontend_path, "login", "login.html")
+#     with open(login_file, "r", encoding="utf-8") as f:
+#         return f.read()
+
+
+# # ---------- API ROUTES ----------
+# app.include_router(student_router)
+
+
+import os
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+
+from database import Base, engine
 import models
-import schemas
 
-# Create database tables
+# Student router import
+from routers.student_router import router as student_router
+
+# Create DB Tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# DB Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# ---------- FRONTEND PATH ----------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+frontend_path = os.path.join(BASE_DIR, "frontend")
+
+# Serve frontend
+app.mount("/frontend", StaticFiles(directory=frontend_path), name="frontend")
+
+# ---------- SHOW student_add.html ----------
+@app.get("/", response_class=HTMLResponse)
+def show_student_add():
+    html_path = os.path.join(
+        frontend_path, "presentation", "student_add", "student_add.html"
+    )
+
+    # Debug print
+    print("Loading HTML:", html_path)
+
+    if not os.path.exists(html_path):
+        return f"HTML file not found: {html_path}"
+
+    with open(html_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 
-@app.get("/")
-def root():
-    return {"message": "Student API Running!"}
-
-
-# Create Student
-@app.post("/students/", response_model=schemas.Student)
-def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
-    db_student = models.Student(**student.dict())
-    db.add(db_student)
-    db.commit()
-    db.refresh(db_student)
-    return db_student
-
-
-# Read all students
-@app.get("/students/", response_model=list[schemas.Student])
-def get_students(db: Session = Depends(get_db)):
-    return db.query(models.Student).all()
-
-
-# Read student by ID
-@app.get("/students/{student_id}", response_model=schemas.Student)
-def get_student(student_id: int, db: Session = Depends(get_db)):
-    student = db.query(models.Student).filter(models.Student.id == student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-    return student
-
-
-# Update
-@app.put("/students/{student_id}", response_model=schemas.Student)
-def update_student(student_id: int, student_data: schemas.StudentCreate, db: Session = Depends(get_db)):
-    student = db.query(models.Student).filter(models.Student.id == student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-
-    student.name = student_data.name
-    student.department = student_data.department
-    student.age = student_data.age
-
-    db.commit()
-    db.refresh(student)
-    return student
-
-
-# Delete
-@app.delete("/students/{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
-    student = db.query(models.Student).filter(models.Student.id == student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-
-    db.delete(student)
-    db.commit()
-    return {"message": "Student deleted successfully"}
+# ---------- API ROUTES ----------
+app.include_router(student_router)

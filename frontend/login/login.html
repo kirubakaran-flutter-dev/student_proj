@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<div class="login-container">
+    <h2>Login</h2>
+
+    <!-- Redirect to add_student.html -->
+    <form action="add_student.html" method="GET">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+        <a href="#" class="forgot">Forgot Password?</a>
+    </form>
+
+</div>
+
+<!-- ✅ SCRIPT SHOULD BE HERE -->
+<script>
+function goToAddStudent() {
+    window.location.href = "add_student.html";
+}
+</script>
+
+</body>
+</html>
